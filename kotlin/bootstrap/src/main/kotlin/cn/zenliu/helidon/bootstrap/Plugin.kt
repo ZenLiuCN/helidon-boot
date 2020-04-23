@@ -7,6 +7,6 @@ import io.helidon.webserver.WebServer
 interface Plugin {
     val name: String
     val beforeStartServer: Boolean
-    fun initialize(boots: BootstrapContainer, config: Config, server: WebServer)
-    fun finalize()
+    fun initialize(boots: Boot, config: Config, server: WebServer)
+    fun doOnFinalize()
 }

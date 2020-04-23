@@ -10,7 +10,7 @@ import java.io.InputStream
 import java.util.logging.LogManager
 
 
-object BootstrapContainer {
+object Boot {
     @JvmStatic
     private val logger = Slf4JLoggerFactory.getInstance(this::class.java)
 
@@ -58,10 +58,10 @@ object BootstrapContainer {
     }
 
     @JvmStatic
-    private var configurator: (BootstrapContainer.() -> Config?)? = null
+    private var configurator: (Boot.() -> Config?)? = null
 
     @JvmStatic
-    fun configuration(conf: BootstrapContainer.() -> Config?) {
+    fun configuration(conf: Boot.() -> Config?) {
         configurator = conf
     }
 
@@ -102,7 +102,7 @@ object BootstrapContainer {
             server.whenShutdown().thenRun {
                 plugins.forEach { (name, u) ->
                     kotlin.runCatching {
-                        u.finalize()
+                        u.doOnFinalize()
                     }.onFailure {
                         logger.error("error on finalization plugin $name", it)
                     }
@@ -119,7 +119,7 @@ object BootstrapContainer {
                             .thenRun {
                                 plugins.forEach { (name, u) ->
                                     kotlin.runCatching {
-                                        u.finalize()
+                                        u.doOnFinalize()
                                     }.onFailure {
                                         logger.error("error on finalization plugin $name", it)
                                     }
@@ -134,7 +134,7 @@ object BootstrapContainer {
                 }
     }
 
-    inline fun bootstrap(act: BootstrapContainer.() -> Unit) {
+    inline fun bootstrap(act: Boot.() -> Unit) {
         act(this)
         start()
     }

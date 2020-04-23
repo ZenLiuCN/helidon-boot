@@ -44,6 +44,13 @@
             <!--  bom -->
             <!-- Bom:Helidon -->
             <dependency>
+                <groupId>io.helidon</groupId>
+                <artifactId>helidon-bom</artifactId>
+                <version>${helidon.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>io.helidon.applications</groupId>
                 <artifactId>helidon-se</artifactId>
                 <version>${helidon.version}</version>

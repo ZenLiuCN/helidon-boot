@@ -5,10 +5,7 @@ import io.helidon.webserver.WebServer;
 
 public interface Plugin {
     String getName();
-
     boolean isBeforeStartServer();
-
     void initialize(Config config, WebServer server);
-
     void doOnFinalize();
 }

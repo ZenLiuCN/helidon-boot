@@ -23,7 +23,7 @@ import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 
-public final class BootstrapContainer {
+public final class Boot {
     static class Pair<K, V> {
         private final K key;
         private final V value;
@@ -44,6 +44,7 @@ public final class BootstrapContainer {
             ".BootstrapContainer");
     private static final Map<String, Function<Config, Service>> routeRegistry = new HashMap<>();
 
+    @SafeVarargs
     static void routes(Pair<String, Function<Config, Service>>... routes) throws IllegalStateException {
         if (Arrays.stream(routes).allMatch(k -> routeRegistry.containsKey(k.key))) {
             throw new IllegalStateException("some route is already" +
@@ -56,14 +57,14 @@ public final class BootstrapContainer {
 
     private static Consumer<Routing.Builder> beforeRegisterRouting = null;
 
-    void extending(Consumer<Routing.Builder> builder) {
+    static void extending(Consumer<Routing.Builder> builder) {
         beforeRegisterRouting = builder;
     }
 
     private static final Map<String, Plugin> plugins = new HashMap<>();
 
     static void plugin(Plugin... pl) {
-        if (plugins.size() == 0) {
+        if (plugins.size() > 0) {
             logger.warn("plugins already registered");
             return;
         }
