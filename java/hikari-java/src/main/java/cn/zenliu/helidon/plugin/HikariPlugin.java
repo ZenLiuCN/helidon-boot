@@ -16,7 +16,7 @@
  *   @Module: hikari-java
  *   @File: HikariPlugin.java
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 20:41:11
+ *   @LastModified:  2020-04-26 22:17:04
  */
 
 package cn.zenliu.helidon.plugin;
@@ -39,16 +39,16 @@ public interface HikariPlugin extends Plugin {
     HikariPlugin configuration(Function<HikariConfig, HikariDataSource> conf);
 
 
-    class HikariPluginImpl implements HikariPlugin {
-        private static final String NAME = "HikariPlugin";
+   final class HikariPluginImpl implements HikariPlugin {
+       private static final String NAME = "HikariPlugin";
 
-        private HikariPluginImpl() {
-        }
+       private HikariPluginImpl() {
+       }
 
-        @Override
-        public String getName() {
-            return NAME;
-        }
+       @Override
+       public String getName() {
+           return NAME;
+       }
 
         @Override
         public boolean isBeforeStartServer() {
@@ -90,24 +90,24 @@ public interface HikariPlugin extends Plugin {
             if (ds != null) ds.close();
         }
 
-        private static class HikariPluginHolder {
-            private static final HikariPlugin instance = new HikariPluginImpl();
-            private static volatile HikariPlugin spi;
+       private static final class Holder {
+           private static final HikariPlugin instance = new HikariPluginImpl();
+           private static volatile HikariPlugin spi;
 
-            static {
-                if (spi == null) {
-                    Iterator<HikariPlugin> it = ServiceLoader.load(HikariPlugin.class).iterator();
-                    if (it.hasNext()) {
-                        spi = it.next();
-                    }
-                }
+           static {
+               if (spi == null) {
+                   Iterator<HikariPlugin> it = ServiceLoader.load(HikariPlugin.class).iterator();
+                   if (it.hasNext()) {
+                       spi = it.next();
+                   }
+               }
             }
         }
 
     }
 
     static HikariPlugin getInstance() {
-        return HikariPluginImpl.HikariPluginHolder.instance;
+        return HikariPluginImpl.Holder.instance;
     }
 
     /**
@@ -116,6 +116,6 @@ public interface HikariPlugin extends Plugin {
      * @return HikariPlugin or null
      */
     static HikariPlugin getSPIInstance() {
-        return HikariPluginImpl.HikariPluginHolder.spi;
+        return HikariPluginImpl.Holder.spi;
     }
 }
