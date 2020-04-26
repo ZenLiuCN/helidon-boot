@@ -17,7 +17,7 @@
   ~   @Module: helidon-bootstrap
   ~   @File: pom.xml
   ~   @Author:  lcz20@163.com
-  ~   @LastModified:  2020-04-26 16:27:48
+  ~   @LastModified:  2020-04-26 18:21:31
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -67,13 +67,6 @@
             <dependency>
                 <groupId>io.helidon</groupId>
                 <artifactId>helidon-bom</artifactId>
-                <version>${helidon.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.helidon.applications</groupId>
-                <artifactId>helidon-se</artifactId>
                 <version>${helidon.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
