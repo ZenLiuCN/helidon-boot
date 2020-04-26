@@ -16,7 +16,7 @@
  *   @Module: bootstrap
  *   @File: Bus.kt
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 22:52:31
+ *   @LastModified:  2020-04-26 22:53:11
  */
 
 package cn.zenliu.helidon.bootstrap
@@ -26,6 +26,7 @@ import io.helidon.webserver.WebServer
 import reactor.core.Disposable
 import reactor.core.publisher.*
 import java.lang.ref.SoftReference
+import java.util.*
 import kotlin.reflect.KClass
 
 typealias ProcessorConfigurator = (FluxProcessor<Bus.Event, Bus.Event>) -> FluxProcessor<Bus.Event, Bus.Event>?
@@ -130,6 +131,12 @@ interface Bus : Plugin {
 
         override fun publish(e: Event) {
             sink.next(e)
+        }
+
+        val spi by lazy {
+            ServiceLoader.load(Bus::class.java).iterator()
+                    .takeIf { it.hasNext() }
+                    ?.next()
         }
     }
 }
