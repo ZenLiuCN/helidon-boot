@@ -36,7 +36,7 @@ public final class Boot {
 
     }
 
-    static Pair<String, Function<Config, Service>> makePair(String path, Function<Config, Service> generator) {
+    public static Pair<String, Function<Config, Service>> makePair(String path, Function<Config, Service> generator) {
         return new Pair<>(path, generator);
     }
 
@@ -45,7 +45,7 @@ public final class Boot {
     private static final Map<String, Function<Config, Service>> routeRegistry = new HashMap<>();
 
     @SafeVarargs
-    static void routes(Pair<String, Function<Config, Service>>... routes) throws IllegalStateException {
+    public static void routes(Pair<String, Function<Config, Service>>... routes) throws IllegalStateException {
         if (Arrays.stream(routes).allMatch(k -> routeRegistry.containsKey(k.key))) {
             throw new IllegalStateException("some route is already" +
                     " registered");
@@ -57,13 +57,13 @@ public final class Boot {
 
     private static Consumer<Routing.Builder> beforeRegisterRouting = null;
 
-    static void extending(Consumer<Routing.Builder> builder) {
+    public static void extending(Consumer<Routing.Builder> builder) {
         beforeRegisterRouting = builder;
     }
 
     private static final Map<String, Plugin> plugins = new HashMap<>();
 
-    static void plugin(Plugin... pl) {
+    public static void plugin(Plugin... pl) {
         if (plugins.size() > 0) {
             logger.warn("plugins already registered");
             return;
@@ -73,17 +73,23 @@ public final class Boot {
     }
 
     @Nullable
-    static <T extends Plugin> T getPlugin(String name) {
+    public static <T extends Plugin> T getPlugin(String name) {
         return (T) plugins.get(name);
+    }
+
+    @Nullable
+    public static <T extends Plugin> T getPluginSafe(String name, Class<T> cls) {
+        final Plugin p = plugins.get(name);
+        return cls.isInstance(p) ? cls.cast(p) : null;
     }
 
     private static Supplier<Config> configurator = null;
 
-    static void configuration(@NonNull Supplier<Config> conf) {
+    public static void configuration(@NonNull Supplier<Config> conf) {
         configurator = conf;
     }
 
-    static void loggerConfiguration(Function<LogManager, InputStream> act) throws IOException {
+    public static void loggerConfiguration(Function<LogManager, InputStream> act) throws IOException {
         LogManager m = LogManager.getLogManager();
         InputStream is = act.apply(m);
         m.readConfiguration(is);
@@ -104,23 +110,28 @@ public final class Boot {
     private static WebServer server = null;
 
     @Nullable
-    static WebServer getServer() {
+    public static WebServer getServer() {
         return server;
     }
 
-    static void start() {
-        if (server != null) return;
+    public static void start() {
+        if (server != null) return; //do nothing when server already started
         final Config cfg;
         if (configurator != null) {
             cfg = configurator.get();
         } else {
             cfg = Config.create();
         }
+        // call cfg for all plugins
+        plugins.values().forEach(e -> e.onConfig(cfg));
+        // create server
         server = WebServer
                 .create(ServerConfiguration.create(cfg.get("server")), buildRouting(cfg));
+        // initialize all plugin with before start server
         plugins.values().stream()
                 .filter(Plugin::isBeforeStartServer)
                 .forEach(p -> p.initialize(cfg, server));
+        //check if server is started by some plugin
         if (server.isRunning()) {
             logger.warn("some plugin started current server,escape normal start procedure");
             server.whenShutdown().thenRun(() -> {
@@ -135,7 +146,7 @@ public final class Boot {
             });
             return;
         }
-
+        //start server
         server.start()
                 .thenAccept((ws) -> {
                     logger.info("WEB server is up! http://0.0.0.0:" + ws.port() + "/");

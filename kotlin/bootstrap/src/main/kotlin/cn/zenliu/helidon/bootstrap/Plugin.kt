@@ -5,8 +5,11 @@ import io.helidon.webserver.WebServer
 
 
 interface Plugin {
-    val name: String
-    val beforeStartServer: Boolean
-    fun initialize(boots: Boot, config: Config, server: WebServer)
-    fun doOnFinalize()
+	val name: String
+	val beforeStartServer: Boolean
+	fun initialize(config: Config, server: WebServer)
+	fun doOnFinalize()
+	open fun onConfig(config: Config) {
+		//default do nothing
+	}
 }

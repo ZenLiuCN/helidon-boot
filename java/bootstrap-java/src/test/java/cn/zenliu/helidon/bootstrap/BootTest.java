@@ -68,6 +68,11 @@ class BootTest {
         }
 
         @Override
+        public void onConfig(Config config) {
+            //do nothing
+        }
+
+        @Override
         public void doOnFinalize() {
             if (ds != null && ds.isRunning()) ds.close();
         }

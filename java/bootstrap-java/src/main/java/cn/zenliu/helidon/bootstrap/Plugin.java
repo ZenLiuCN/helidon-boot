@@ -7,5 +7,8 @@ public interface Plugin {
     String getName();
     boolean isBeforeStartServer();
     void initialize(Config config, WebServer server);
+
+    void onConfig(Config config);
+
     void doOnFinalize();
 }

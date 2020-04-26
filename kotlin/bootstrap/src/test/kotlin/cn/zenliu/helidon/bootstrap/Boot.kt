@@ -44,7 +44,7 @@ object HikariPlugin : Plugin {
 	override val beforeStartServer = true
 	private lateinit var ds: HikariDataSource
 	val dataSource: DataSource by lazy { ds }
-	override fun initialize(boots: Boot, config: Config, server: WebServer) {
+	override fun initialize(config: Config, server: WebServer) {
 		ds = HikariDataSource(HikariConfig().apply {
 			jdbcUrl = config["hikari.uri"].asString().get() ?: throw IllegalStateException("hikari not config")
 		})
@@ -56,7 +56,6 @@ object HikariPlugin : Plugin {
 }
 
 class EchoApi(config: Config) : Service {
-
 	override fun update(r: Rules) {
 		r.get("/echo", Handler { _, rs ->
 			rs.send("hello")
