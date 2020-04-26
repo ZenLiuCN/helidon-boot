@@ -16,7 +16,7 @@
  *   @Module: bootstrap-java
  *   @File: Bus.java
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 22:17:04
+ *   @LastModified:  2020-04-26 22:51:41
  */
 
 package cn.zenliu.helidon.bootstrap;
@@ -26,8 +26,11 @@ import io.helidon.webserver.WebServer;
 import reactor.core.Disposable;
 import reactor.core.publisher.*;
 
+import java.lang.ref.SoftReference;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,7 +58,9 @@ public interface Bus extends Plugin {
      * @param <E>      subtype of event
      * @return an Disposable
      */
-    <E extends Event> Disposable subscribe(Class<E> eventClz, Consumer<E> consumer);
+    <E extends Event> long subscribe(Class<E> eventClz, Consumer<E> consumer);
+
+    void unsubscribe(long identity);
 
     void publish(Event event);
 
@@ -63,7 +68,7 @@ public interface Bus extends Plugin {
     }
 
     final class FluxBusImpl implements Bus {
-        private static final String NAME = "EventBusPlugin";
+        private static final String NAME = "FluxBusPlugin";
 
         private static Flux<Event> flux;
         private static FluxSink<Event> sink;
@@ -153,14 +158,34 @@ public interface Bus extends Plugin {
         public void doOnFinalize() {
         }
 
+        private static final Map<Long, SoftReference<Disposable>> registry = new ConcurrentHashMap<>();
+
+        private void purify() {
+            registry.entrySet().stream()
+                    .filter(e -> e.getValue().get() == null)
+                    .forEach(e -> registry.remove(e.getKey()));
+        }
+
         @SuppressWarnings("unchecked")
         @Override
-        public <E extends Event> Disposable subscribe(Class<E> eventClz, Consumer<E> consumer) {
+        public <E extends Event> long subscribe(Class<E> eventClz, Consumer<E> consumer) {
+            purify();
+            long code = consumer.hashCode() + System.currentTimeMillis();
+            if (registry.containsKey(code)) return -1;
             //does this share needed?
-            return flux
+            Disposable d = flux
                     .filter(eventClz::isInstance)
                     .share()
                     .subscribe(c -> consumer.accept((E) c));
+            registry.put(code, new SoftReference<>(d));
+            return code;
+        }
+
+        @Override
+        public void unsubscribe(long identity) {
+            Disposable d = registry.get(identity).get();
+            if (d != null && !d.isDisposed()) d.dispose();
+            registry.remove(identity);
         }
 
         @Override
