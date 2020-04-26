@@ -16,7 +16,7 @@
  *   @Module: hikari-java
  *   @File: HikariPlugin.java
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 16:27:48
+ *   @LastModified:  2020-04-26 20:41:11
  */
 
 package cn.zenliu.helidon.plugin;
@@ -28,7 +28,9 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.helidon.config.Config;
 import io.helidon.webserver.WebServer;
 
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.function.Function;
 
 public interface HikariPlugin extends Plugin {
@@ -90,11 +92,30 @@ public interface HikariPlugin extends Plugin {
 
         private static class HikariPluginHolder {
             private static final HikariPlugin instance = new HikariPluginImpl();
+            private static volatile HikariPlugin spi;
+
+            static {
+                if (spi == null) {
+                    Iterator<HikariPlugin> it = ServiceLoader.load(HikariPlugin.class).iterator();
+                    if (it.hasNext()) {
+                        spi = it.next();
+                    }
+                }
+            }
         }
 
     }
 
-    public static HikariPlugin getInstance() {
+    static HikariPlugin getInstance() {
         return HikariPluginImpl.HikariPluginHolder.instance;
+    }
+
+    /**
+     * new SPI Loader helper
+     *
+     * @return HikariPlugin or null
+     */
+    static HikariPlugin getSPIInstance() {
+        return HikariPluginImpl.HikariPluginHolder.spi;
     }
 }

@@ -16,7 +16,7 @@
  *   @Module: hikari
  *   @File: HikariPlugin.kt
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 16:27:48
+ *   @LastModified:  2020-04-26 20:42:43
  */
 
 package cn.zenliu.helidon.plugin
@@ -28,42 +28,49 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.helidon.config.Config
 import io.helidon.webserver.WebServer
+import java.util.*
 
 typealias configurator = Companion.(HikariConfig) -> HikariDataSource?
 
 interface HikariPlugin : Plugin {
-	val datasource: HikariDataSource
-	fun configuration(conf: configurator): HikariPlugin
+    val datasource: HikariDataSource
+    fun configuration(conf: configurator): HikariPlugin
 
-	companion object : HikariPlugin {
-		private const val NAME = "HikariPlugin"
-		override val name: String = NAME
-		override val beforeStartServer: Boolean = true
-		private lateinit var ds: HikariDataSource
-		override val datasource: HikariDataSource by lazy { ds }
-		private var configurator: configurator? = { null }
-		override fun configuration(conf: configurator): HikariPlugin {
-			configurator = conf
-			return this
-		}
+    companion object : HikariPlugin {
+        private const val NAME = "HikariPlugin"
+        override val name: String = NAME
+        override val beforeStartServer: Boolean = true
+        private lateinit var ds: HikariDataSource
+        override val datasource: HikariDataSource by lazy { ds }
+        private var configurator: configurator? = { null }
+        override fun configuration(conf: configurator): HikariPlugin {
+            configurator = conf
+            return this
+        }
 
-		override fun initialize(config: Config, server: WebServer) {
-			if (configurator == null) return
-			val prop = config
-					.get("hikari")
-					.takeIf { it.exists() }
-					?.detach()
-					?.toProperties()
-					?: throw IllegalArgumentException(" invalid configuration of hikari ")
-			val conf = HikariConfig(prop)
-			ds = configurator?.invoke(this, conf) ?: HikariDataSource(conf)
-			configurator = null
+        override fun initialize(config: Config, server: WebServer) {
+            if (configurator == null) return
+            val prop = config
+                    .get("hikari")
+                    .takeIf { it.exists() }
+                    ?.detach()
+                    ?.toProperties()
+                    ?: throw IllegalArgumentException(" invalid configuration of hikari ")
+            val conf = HikariConfig(prop)
+            ds = configurator?.invoke(this, conf) ?: HikariDataSource(conf)
+            configurator = null
 
-		}
+        }
 
-		override fun doOnFinalize() {
-			if (configurator == null) ds.close()
-		}
-	}
+        override fun doOnFinalize() {
+            if (configurator == null) ds.close()
+        }
+
+        val spi by lazy {
+            ServiceLoader.load(HikariPlugin::class.java).iterator()
+                    .takeIf { it.hasNext() }
+                    ?.next()
+        }
+    }
 
 }
