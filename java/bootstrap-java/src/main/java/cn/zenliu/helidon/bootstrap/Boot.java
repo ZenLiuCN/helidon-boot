@@ -16,7 +16,7 @@
  *   @Module: bootstrap-java
  *   @File: Boot.java
  *   @Author:  lcz20@163.com
- *   @LastModified:  2020-04-26 16:27:48
+ *   @LastModified:  2020-04-26 18:34:26
  */
 
 package cn.zenliu.helidon.bootstrap;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 
 public final class Boot {
-    static class Pair<K, V> {
+    public final static class Pair<K, V> {
         private final K key;
         private final V value;
 
