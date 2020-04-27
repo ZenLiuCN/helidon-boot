@@ -14,10 +14,10 @@
   ~  limitations under the License.
   ~
   ~   @Project: helidon-bootstrap
-  ~   @Module: helidon-bootstrap
+  ~   @Module: helidon-boot
   ~   @File: pom.xml
   ~   @Author:  lcz20@163.com
-  ~   @LastModified:  2020-04-26 18:21:31
+  ~   @LastModified:  2020-04-27 13:39:21
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -26,12 +26,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.zenliu</groupId>
-    <artifactId>helidon-bootstrap</artifactId>
+    <artifactId>helidon-boot</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>kotlin</module>
-        <module>java</module>
+        <module>bootstrap</module>
+        <module>hikari</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -137,6 +137,13 @@
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${junit-jupiter.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>16.0.3</version>
+                <scope>compile</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -274,6 +281,12 @@
             </plugins>
         </pluginManagement>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+    </dependencies>
 
 
 </project>
