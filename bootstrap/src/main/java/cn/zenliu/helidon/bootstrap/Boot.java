@@ -176,7 +176,7 @@ public final class Boot {
                 .stream()
                 .sorted((e1, e2) -> {
                     Boolean state = e2.isBeforeType(e1.getType(), e1.getName());
-                    return state == null ? 0 : !state ? 1 : -1;
+                    return state == null ? 0 : state ? -1 : 1;
                 }).collect(Collectors.toMap(
                         Plugin::getName,
                         e -> e,
