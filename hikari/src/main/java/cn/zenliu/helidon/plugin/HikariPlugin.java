@@ -27,6 +27,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.helidon.config.Config;
 import io.helidon.webserver.WebServer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Properties;
@@ -39,16 +40,26 @@ public interface HikariPlugin extends Plugin {
     HikariPlugin configuration(Function<HikariConfig, HikariDataSource> conf);
 
 
-   final class HikariPluginImpl implements HikariPlugin {
-       private static final String NAME = "HikariPlugin";
+    final class HikariPluginImpl implements HikariPlugin {
+        private static final String NAME = "HikariPlugin";
 
-       private HikariPluginImpl() {
-       }
+        private HikariPluginImpl() {
+        }
 
-       @Override
-       public @org.jetbrains.annotations.NotNull String getName() {
-           return NAME;
-       }
+        @Override
+        public @NotNull String getName() {
+            return NAME;
+        }
+
+        @Override
+        public Boolean isBeforeType(@NotNull PluginType type, String name) {
+            return null;
+        }
+
+        @Override
+        public @NotNull PluginType getType() {
+            return PluginType.DATASOURCE;
+        }
 
         @Override
         public boolean isBeforeStartServer() {
@@ -90,17 +101,17 @@ public interface HikariPlugin extends Plugin {
             if (ds != null) ds.close();
         }
 
-       private static final class Holder {
-           private static final HikariPlugin instance = new HikariPluginImpl();
-           private static volatile HikariPlugin spi;
+        private static final class Holder {
+            private static final HikariPlugin instance = new HikariPluginImpl();
+            private static volatile HikariPlugin spi;
 
-           static {
-               if (spi == null) {
-                   Iterator<HikariPlugin> it = ServiceLoader.load(HikariPlugin.class).iterator();
-                   if (it.hasNext()) {
-                       spi = it.next();
-                   }
-               }
+            static {
+                if (spi == null) {
+                    Iterator<HikariPlugin> it = ServiceLoader.load(HikariPlugin.class).iterator();
+                    if (it.hasNext()) {
+                        spi = it.next();
+                    }
+                }
             }
         }
 

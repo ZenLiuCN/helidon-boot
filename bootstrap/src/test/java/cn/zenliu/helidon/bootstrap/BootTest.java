@@ -30,6 +30,8 @@ import io.helidon.metrics.MetricsSupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.Service;
 import io.helidon.webserver.WebServer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -59,8 +61,8 @@ class BootTest {
         );
         //config plugins
         plugin(
-                new HikariPlugin(),
-                Bus.getInstance()
+                Bus.getInstance(),
+                new HikariPlugin()
         );
         //extend routing
         extending(b -> {
@@ -89,8 +91,18 @@ class BootTest {
         }
 
         @Override
-        public @org.jetbrains.annotations.NotNull String getName() {
+        public @NotNull String getName() {
             return PluginName;
+        }
+
+        @Override
+        public @Nullable Boolean isBeforeType(@NotNull PluginType type, String name) {
+            return null;
+        }
+
+        @Override
+        public @NotNull PluginType getType() {
+            return PluginType.DATASOURCE;
         }
 
         @Override

@@ -100,7 +100,7 @@ public interface Bus extends Plugin {
         }
 
         @Override
-        public boolean isBeforeType(@NotNull PluginType type, String name) {
+        public Boolean isBeforeType(@NotNull PluginType type, String name) {
             return true;
         }
 

@@ -24,6 +24,7 @@ package cn.zenliu.helidon.bootstrap;
 import io.helidon.config.Config;
 import io.helidon.webserver.WebServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface Plugin {
     enum PluginType {
@@ -35,7 +36,7 @@ public interface Plugin {
 
     @NotNull String getName();
 
-    boolean isBeforeType(@NotNull PluginType type, String name);
+    @Nullable Boolean isBeforeType(@NotNull PluginType type, String name);
 
     @NotNull PluginType getType();
 

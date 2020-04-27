@@ -33,10 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -61,8 +58,7 @@ public final class Boot {
         return new Pair<>(path, generator);
     }
 
-    private static final InternalLogger logger = Slf4JLoggerFactory.getInstance("cn.zenliu.helidon.bootstrap" +
-            ".BootstrapContainer");
+    private static final InternalLogger logger = Slf4JLoggerFactory.getInstance(Boot.class);
     private static final Map<String, Function<Config, Service>> routeRegistry = new HashMap<>();
 
     @SafeVarargs
@@ -82,7 +78,7 @@ public final class Boot {
         beforeRegisterRouting = builder;
     }
 
-    private static final Map<String, Plugin> plugins = new HashMap<>();
+    private static Map<String, Plugin> plugins = new HashMap<>();
 
     /**
      * register of plugins
@@ -125,11 +121,12 @@ public final class Boot {
     private static Routing buildRouting(@NotNull Config config) {
         Routing.Builder b = Routing.builder();
         if (beforeRegisterRouting != null) beforeRegisterRouting.accept(b);
-        routeRegistry.forEach((n, a) -> {
-            Service srv = a.apply(config);
-            b.register(n, srv);
-            logger.info("register api service [" + srv.getClass().getCanonicalName() + "] on " + n);
-        });
+        routeRegistry
+                .forEach((n, a) -> {
+                    Service srv = a.apply(config);
+                    b.register(n, srv);
+                    logger.info("register api service [" + srv.getClass().getCanonicalName() + "] on " + n);
+                });
         routeRegistry.clear();
         return b.build();
     }
@@ -141,6 +138,31 @@ public final class Boot {
         return server;
     }
 
+    private static void initializationOfPlugin(boolean beforeServerStart, Config cfg) {
+        plugins.values()
+                .stream()
+                .filter(it -> it.isBeforeStartServer() == beforeServerStart)
+                .forEach(p -> {
+                    try {
+                        p.initialize(cfg, server);
+                        logger.info("initialized of " + p.getName());
+                    } catch (Exception e) {
+                        logger.error("error on initialize of " + p.getName(), e);
+                    }
+                });
+    }
+
+    private static void finalizationOfPlugins() {
+        plugins.values()
+                .forEach(v -> {
+                    try {
+                        v.doOnFinalize();
+                    } catch (Exception e) {
+                        logger.error("error on finalization plugin " + v.getName(), e);
+                    }
+                });
+    }
+
     public static void start() {
         if (server != null) return; //do nothing when server already started
         final Config cfg;
@@ -149,36 +171,37 @@ public final class Boot {
         } else {
             cfg = Config.create();
         }
+        //sort
+        plugins = plugins.values()
+                .stream()
+                .sorted((e1, e2) -> {
+                    Boolean state = e2.isBeforeType(e1.getType(), e1.getName());
+                    return state == null ? 0 : !state ? 1 : -1;
+                }).collect(Collectors.toMap(
+                        Plugin::getName,
+                        e -> e,
+                        (oldValue, newValue) -> oldValue,
+                        TreeMap::new
+                ));
         // call cfg for all plugins
-        plugins.values().forEach(e -> e.onConfig(cfg));
+        plugins
+                .values()
+                .forEach(e -> e.onConfig(cfg));
         // create server
         server = WebServer
-                .create(ServerConfiguration.create(cfg.get("server")), buildRouting(cfg));
+                .create(
+                        ServerConfiguration
+                                .create(cfg.get("server")),
+                        buildRouting(cfg));
         // initialize all plugin with before start server
-        plugins.values().stream()
-                .filter(Plugin::isBeforeStartServer)
-                .forEach(p -> {
-                    p.initialize(cfg, server);
-                    logger.info("initialized of " + p.getName());
-                });
+        initializationOfPlugin(true, cfg);
         //check if server is started by some plugin
         if (server.isRunning()) {
             logger.warn("some plugin started current server,escape normal start procedure");
-            plugins.values().stream()
-                    .filter(it -> !it.isBeforeStartServer())
-                    .forEach(p -> {
-                        p.initialize(cfg, server);
-                        logger.info("initialized of " + p.getName());
-                    });
+            initializationOfPlugin(false, cfg);
             server.whenShutdown().thenRun(() -> {
-                plugins.forEach((k, v) -> {
-                    try {
-                        v.doOnFinalize();
-                    } catch (Exception e) {
-                        logger.error("error on finalization plugin $name", e);
-                    }
-                });
-                logger.info(" server [which start by some plugin] is DOWN. Good bye!");
+                finalizationOfPlugins();
+                logger.info(" server [start by some plugin] is DOWN. Good bye!");
             });
             return;
         }
@@ -186,22 +209,10 @@ public final class Boot {
         server.start()
                 .thenAccept((ws) -> {
                     logger.info("WEB server is up! http://0.0.0.0:" + ws.port() + "/");
-                    plugins.values().stream()
-                            .filter(it -> !it.isBeforeStartServer())
-                            .forEach(p -> {
-                                p.initialize(cfg, server);
-                                logger.info("initialized of " + p.getName());
-                            });
+                    initializationOfPlugin(false, cfg);
                     ws.whenShutdown()
                             .thenRun(() -> {
-                                plugins.forEach((k, v) -> {
-                                    try {
-                                        v.doOnFinalize();
-                                        logger.info("finalization of " + v.getName());
-                                    } catch (Throwable it) {
-                                        logger.error("error on finalization plugin $name", it);
-                                    }
-                                });
+                                finalizationOfPlugins();
                                 logger.info(" server is DOWN. Good bye!");
                             });
                 })
