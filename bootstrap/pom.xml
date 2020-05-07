@@ -42,16 +42,7 @@
             <artifactId>helidon-webserver</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>io.helidon.health</groupId>
-            <artifactId>helidon-health</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.metrics</groupId>
-            <artifactId>helidon-metrics2</artifactId>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
@@ -63,10 +54,6 @@
             <version>1.4.200</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
-        </dependency>
+
     </dependencies>
 </project>

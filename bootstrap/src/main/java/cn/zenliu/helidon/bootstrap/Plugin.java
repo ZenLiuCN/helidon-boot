@@ -22,7 +22,10 @@
 package cn.zenliu.helidon.bootstrap;
 
 import io.helidon.config.Config;
+import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerConfiguration;
 import io.helidon.webserver.WebServer;
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +44,11 @@ public interface Plugin {
     @NotNull PluginType getType();
 
     boolean isBeforeStartServer();
+
+    boolean withServerCreate();
+
+    @NonNull
+    WebServer createCustomerServer(Config config, ServerConfiguration serverConfiguration, Routing routings);
 
     void initialize(Config config, WebServer server);
 

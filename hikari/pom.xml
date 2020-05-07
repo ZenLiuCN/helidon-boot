@@ -41,11 +41,6 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.helidon.config</groupId>
-            <artifactId>helidon-config-hocon</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

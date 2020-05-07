@@ -22,7 +22,10 @@
 package cn.zenliu.helidon.bootstrap;
 
 import io.helidon.config.Config;
+import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerConfiguration;
 import io.helidon.webserver.WebServer;
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.Disposable;
 import reactor.core.publisher.*;
@@ -113,6 +116,17 @@ public interface Bus extends Plugin {
         public boolean isBeforeStartServer() {
             return true;
         }
+
+        @Override
+        public boolean withServerCreate() {
+            return false;
+        }
+
+        @Override
+        public @NonNull WebServer createCustomerServer(Config config, ServerConfiguration serverConfiguration, Routing routings) {
+            return null;
+        }
+
 
         @Override
         public void initialize(Config config, WebServer server) {

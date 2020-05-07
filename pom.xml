@@ -42,6 +42,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <lombok.version>1.18.12</lombok.version>
         <!--  version  -->
         <kotlin.version>1.3.71</kotlin.version>
         <helidon.version>1.4.4</helidon.version>
@@ -72,6 +73,13 @@
                 <version>${helidon.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
             </dependency>
             <!-- Bom:kotlin -->
             <dependency>
@@ -310,9 +318,9 @@
                     <configuration>
                         <transformers>
                             <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                 <mainClass>${main.class.jar}</mainClass>
                             </transformer>
                         </transformers>
@@ -338,13 +346,68 @@
                         </dependency>
                     </dependencies>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <!--  <path>
+                                  <groupId>com.google.auto.service</groupId>
+                                  <artifactId>auto-service</artifactId>
+                                  <version>${auto-service.version}</version>
+                              </path>-->
+                        </annotationProcessorPaths>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.health</groupId>
+            <artifactId>helidon-health</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.metrics</groupId>
+            <artifactId>helidon-metrics2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.config</groupId>
+            <artifactId>helidon-config-hocon</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.media.jsonp</groupId>
+            <artifactId>helidon-media-jsonp-server</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

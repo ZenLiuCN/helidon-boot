@@ -24,7 +24,11 @@ package cn.zenliu.helidon.plugin;
 
 import cn.zenliu.helidon.bootstrap.Plugin;
 import io.helidon.config.Config;
+import io.helidon.webserver.NettyTLSWebServer;
+import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerConfiguration;
 import io.helidon.webserver.WebServer;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +40,10 @@ import java.util.ServiceLoader;
 
 public interface BouncyCastleTlsPlugin extends Plugin {
 
-
+    @Slf4j
     final class BouncyCastleTlsPluginImpl implements BouncyCastleTlsPlugin {
+
+
         private static final String NAME = "BouncyCastleTlsPlugin";
 
         private BouncyCastleTlsPluginImpl() {
@@ -60,12 +66,31 @@ public interface BouncyCastleTlsPlugin extends Plugin {
         }
 
         @Override
+        public boolean withServerCreate() {
+            return true;
+        }
+
+        @Override
         public boolean isBeforeStartServer() {
             return true;
         }
 
         @Override
+        public WebServer createCustomerServer(Config config, ServerConfiguration configuration, Routing defaultRouting) {
+            return NettyTLSWebServer.build(
+                config.get("server"),
+                configuration,
+                defaultRouting
+            );
+        }
+
+        @Override
         public void initialize(Config config, WebServer server) {
+
+        }
+
+        @Override
+        public void onConfig(Config config) {
             if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
                 Security.insertProviderAt(new BouncyCastleProvider(), 1);
             }
@@ -74,11 +99,7 @@ public interface BouncyCastleTlsPlugin extends Plugin {
             }
             Security.setProperty("ssl.KeyManagerFactory.algorithm", "PKIX ");
             Security.setProperty("ssl.TrustManagerFactory.algorithm", "PKIX ");
-        }
 
-        @Override
-        public void onConfig(Config config) {
-//            config.get("ssl")
         }
 
         @Override

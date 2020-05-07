@@ -26,7 +26,10 @@ import cn.zenliu.helidon.bootstrap.Plugin;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.helidon.config.Config;
+import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerConfiguration;
 import io.helidon.webserver.WebServer;
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -65,6 +68,17 @@ public interface HikariPlugin extends Plugin {
         public boolean isBeforeStartServer() {
             return true;
         }
+
+        @Override
+        public boolean withServerCreate() {
+            return false;
+        }
+
+        @Override
+        public @NonNull WebServer createCustomerServer(Config config, ServerConfiguration serverConfiguration, Routing routings) {
+            return null;
+        }
+
 
         private static Function<HikariConfig, HikariDataSource> configurator = e -> null;
 
